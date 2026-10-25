@@ -2,13 +2,20 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { api, setToken, clearToken, getToken } from "../api/client";
 
-export type User = { id: string; email: string; display_name: string | null };
+export type User = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  has_avatar?: boolean;
+  avatar_version?: string | null;
+};
 
 type AuthValue = {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName?: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
 };
 
@@ -57,13 +64,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }
 
+  // Re-fetch the current user (after an email change or avatar upload).
+  async function refreshUser() {
+    try {
+      const data = await api<{ user: User }>("/auth/me");
+      setUser(data.user);
+    } catch {
+      // leave the current user as-is on a transient failure
+    }
+  }
+
   function logout() {
     clearToken();
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

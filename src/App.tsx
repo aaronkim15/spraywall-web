@@ -3,6 +3,11 @@ import { useAuth } from "./auth/AuthContext";
 import LoginScreen from "./auth/LoginScreen";
 import RegisterScreen from "./auth/RegisterScreen";
 import Home from "./pages/Home";
+import Wall from "./pages/Wall";
+import CreateClimb from "./pages/CreateClimb";
+import ClimbsList from "./pages/ClimbsList";
+import ClimbDetail from "./pages/ClimbDetail";
+import Profile from "./pages/Profile";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -11,7 +16,6 @@ export default function App() {
     return <div className="splash">Loading...</div>;
   }
 
-  // Not signed in: every route funnels to login (register is the only other door).
   if (!user) {
     return (
       <Routes>
@@ -22,10 +26,15 @@ export default function App() {
     );
   }
 
-  // Signed in: land on home.
   return (
     <Routes>
       <Route path="/home" element={<Home />} />
+      <Route path="/wall" element={<Wall />} />
+      <Route path="/climbs" element={<ClimbsList />} />
+      <Route path="/climbs/new" element={<CreateClimb />} />
+      <Route path="/climbs/:id" element={<ClimbDetail />} />
+      <Route path="/climbs/:id/edit" element={<CreateClimb />} />
+      <Route path="/profile" element={<Profile />} />
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
