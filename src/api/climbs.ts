@@ -112,3 +112,14 @@ export function updateClimb(
     body: JSON.stringify(payload),
   });
 }
+
+export function rateClimb(id: string, stars: number) {
+  return api<{ ok: boolean }>(`/climbs/${id}/rate`, {
+    method: "POST",
+    body: JSON.stringify({ stars }),
+  });
+}
+
+export function unrateClimb(id: string) {
+  return api<void>(`/climbs/${id}/rate`, { method: "DELETE" });
+}
