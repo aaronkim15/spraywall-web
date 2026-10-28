@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers static-assets config for the SprayWall PWA.
+  // `npm run build` outputs to ./dist, which is served as static files.
+  "name": "spraywall-web",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./dist",
+    // Serve index.html for unknown routes so client-side routing (React Router)
+    // handles paths like /climbs/123 instead of 404ing.
+    "not_found_handling": "single-page-application"
+  }
+}
