@@ -4,7 +4,7 @@ import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { useNavigate, useParams } from "react-router-dom";
 import { getWall, wallImageUrl, cachedWall } from "../api/walls";
 import type { Wall as WallType } from "../api/walls";
-import { getClimb, deleteClimb, sendClimb, deleteSend } from "../api/climbs";
+import { getClimb, deleteClimb, sendClimb, deleteSend, rateClimb, unrateClimb } from "../api/climbs";
 import type { ClimbDetail as ClimbDetailType } from "../api/climbs";
 import { ROLE_COLORS, ROLE_ONHOLD } from "../lib/roles";
 import { useAuth } from "../auth/AuthContext";
@@ -22,6 +22,7 @@ export default function ClimbDetail() {
   const [deleting, setDeleting] = useState(false);
   const [logAttempts, setLogAttempts] = useState(1);
   const [logBusy, setLogBusy] = useState(false);
+  const [ratingBusy, setRatingBusy] = useState(false);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
   const overlayRef = useRef<ReactZoomPanPinchRef | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -54,6 +55,21 @@ export default function ClimbDetail() {
       setError(e instanceof Error ? e.message : "Could not log send.");
     } finally {
       setLogBusy(false);
+    }
+  }
+
+  async function onRate(n: number) {
+    if (!id || !user) return;
+    setRatingBusy(true);
+    setError(null);
+    try {
+      if (climb?.my_rating === n) await unrateClimb(id); // tap your current star to clear
+      else await rateClimb(id, n);
+      setClimb(await getClimb(id)); // refresh average + my_rating
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save rating.");
+    } finally {
+      setRatingBusy(false);
     }
   }
 
@@ -173,6 +189,23 @@ export default function ClimbDetail() {
             {climb.grade && <span className="meta-chip">{climb.grade}</span>}
             {climb.feet_rules && <span className="meta-chip">{climb.feet_rules}</span>}
             <span className="meta-chip">{climb.send_count} {climb.send_count === 1 ? "sender" : "senders"}</span>
+          </div>
+
+          <div className="rating-row">
+            <div className="stars">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  className={`star-btn${(climb.my_rating ?? 0) >= n ? " filled" : ""}`}
+                  onClick={() => onRate(n)}
+                  disabled={!user || ratingBusy}
+                  aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                >★</button>
+              ))}
+            </div>
+            <span className="rating-avg">
+              {climb.rating != null ? `${climb.rating} (${climb.rating_count})` : "No ratings yet"}
+            </span>
           </div>
 
           {user && (

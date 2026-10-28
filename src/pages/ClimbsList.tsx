@@ -160,7 +160,10 @@ export default function ClimbsList() {
                   {c.sent_by_me && <span className="sent-tick" title="You've sent this"> ✓</span>}
                 </span>
                 <span className="climb-grade-line">{c.grade || "Ungraded"}</span>
-                <span className="climb-sub">{c.send_count} {c.send_count === 1 ? "send" : "sends"}</span>
+                <span className="climb-sub">
+                  {c.send_count} {c.send_count === 1 ? "send" : "sends"}
+                  {c.rating != null && ` · ★ ${c.rating}`}
+                </span>
                 {c.setter_name && <span className="climb-setter-sub">Set by {c.setter_name}</span>}
               </span>
             </button>

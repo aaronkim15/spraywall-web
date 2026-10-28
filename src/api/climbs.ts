@@ -12,7 +12,8 @@ export type ClimbSummary = {
   created_at: string;
   sent_by_me: boolean;
   setter_name: string | null;
-  rating?: number; // not yet populated by the backend
+  rating: number | null;        // average stars, null if unrated
+  rating_count: number;
   thumb_version: string | null; // md5 of the cached thumbnail; null until generated
 };
 
@@ -67,6 +68,9 @@ export type ClimbDetail = {
   created_at: string;
   creator_id: string | null;
   setter_name: string | null;
+  rating: number | null;        // average stars
+  rating_count: number;
+  my_rating: number | null;     // the current user's stars (null if not logged in / unrated)
   holds: ClimbHold[];
   sends: SendEntry[];
   send_count: number;
