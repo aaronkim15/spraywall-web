@@ -1,0 +1,11 @@
+# Never cache the service worker, its registration, the manifest, or the HTML
+# shell, so new deploys are picked up immediately. Hashed JS/CSS assets keep
+# their default long cache (their filenames change each build).
+/sw.js
+  Cache-Control: no-cache
+/registerSW.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
