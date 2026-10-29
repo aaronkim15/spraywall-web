@@ -27,7 +27,7 @@ export default function LoginScreen() {
 
   return (
     <div className="auth-screen">
-      <h1>SprayWall</h1>
+      <h1>THE JUNGLE GYM</h1>
       <form onSubmit={onSubmit} className="auth-form">
         <input
           type="email" placeholder="Email" value={email}
