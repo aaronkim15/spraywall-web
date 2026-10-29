@@ -39,7 +39,7 @@ export default function Home() {
             <path d="M6 36 L18 14 L26 26 L31 19 L42 36 Z" fill="#fff" />
           </svg>
         </div>
-        <h1 className="home-title">SPRAYWALL</h1>
+        <h1 className="home-title">THE JUNGLE GYM</h1>
         <p className="home-tagline">SET · LOG · CLIMB</p>
       </div>
 
