@@ -38,6 +38,8 @@ const CYCLE: HoldRole[] = ["hand", "start", "foot", "finish"];
 // --- Dropdown options (placeholders — swap these arrays for your real sets) ---
 const GRADES = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15"];
 const FEET_RULES = ["Open feet", "Feet follow hands", "Marked feet only", "Tracking", "No feet"];
+// Wall angles in degrees. Placeholder 5-60 by 5 until the real angles are measured.
+const ANGLES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 
 export default function CreateClimb() {
   const navigate = useNavigate();
@@ -54,6 +56,7 @@ export default function CreateClimb() {
   const [name, setName] = useState(() => (isEditing ? "" : (loadDraft().name as string) || ""));
   const [description, setDescription] = useState(() => (isEditing ? "" : (loadDraft().description as string) || ""));
   const [grade, setGrade] = useState(() => (isEditing ? "" : (loadDraft().grade as string) || ""));
+  const [angle, setAngle] = useState(() => (isEditing ? "" : (loadDraft().angle as string) || ""));
   const [feetRules, setFeetRules] = useState(() => (isEditing ? "" : (loadDraft().feetRules as string) || ""));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +74,7 @@ export default function CreateClimb() {
           setSelection(Object.fromEntries(c.holds.map((hold) => [hold.id, hold.role])));
           setName(c.name);
           setGrade(c.grade || "");
+          setAngle(c.angle != null ? String(c.angle) : "");
           setDescription(c.description || "");
           setFeetRules(c.feet_rules || "");
         }
@@ -84,11 +88,11 @@ export default function CreateClimb() {
   useEffect(() => {
     if (isEditing) return; // edits load from the saved climb, not from a draft
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ selection, step, name, description, grade, feetRules, savedAt: Date.now() }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ selection, step, name, description, grade, angle, feetRules, savedAt: Date.now() }));
     } catch {
       // storage can be full or blocked (private mode) — a lost draft is not fatal
     }
-  }, [isEditing, selection, step, name, description, grade, feetRules]);
+  }, [isEditing, selection, step, name, description, grade, angle, feetRules]);
 
   function resetDraft() {
     setSelection({});
@@ -163,6 +167,7 @@ export default function CreateClimb() {
         await updateClimb(editId, {
           name: name.trim(),
           grade: grade || null,
+          angle: angle ? Number(angle) : null,
           description: description.trim() || null,
           feetRules: feetRules || null,
           holds: holdsPayload,
@@ -172,6 +177,7 @@ export default function CreateClimb() {
         await createClimb({
           name: name.trim(),
           grade: grade || null,
+          angle: angle ? Number(angle) : null,
           description: description.trim() || null,
           feetRules: feetRules || null,
           wallId: WALL_ID,
@@ -222,6 +228,14 @@ export default function CreateClimb() {
             <select value={grade} onChange={(e) => setGrade(e.target.value)}>
               <option value="">Select grade</option>
               {GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </label>
+
+          <label className="field">
+            <span className="field-label">Angle</span>
+            <select value={angle} onChange={(e) => setAngle(e.target.value)}>
+              <option value="">Select angle</option>
+              {ANGLES.map((a) => <option key={a} value={a}>{a}&deg;</option>)}
             </select>
           </label>
 

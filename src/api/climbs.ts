@@ -7,6 +7,7 @@ export type ClimbSummary = {
   id: string;
   name: string;
   grade: string | null;
+  angle: number | null;        // wall angle in degrees, null if unset
   description: string | null;
   send_count: number;
   created_at: string;
@@ -22,6 +23,7 @@ export type ClimbSummary = {
 export function createClimb(payload: {
   name: string;
   grade: string | null;
+  angle: number | null;
   description: string | null;
   feetRules: string | null;
   wallId: string;
@@ -63,6 +65,7 @@ export type ClimbDetail = {
   id: string;
   name: string;
   grade: string | null;
+  angle: number | null;
   description: string | null;
   feet_rules: string | null;
   created_at: string;
@@ -102,6 +105,7 @@ export function updateClimb(
   payload: {
     name: string;
     grade: string | null;
+    angle: number | null;
     description: string | null;
     feetRules: string | null;
     holds: { id: string; role: HoldRole }[];

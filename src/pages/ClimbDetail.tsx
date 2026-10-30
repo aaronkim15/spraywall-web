@@ -187,6 +187,7 @@ export default function ClimbDetail() {
           )}
           <div className="climb-meta-tags">
             {climb.grade && <span className="meta-chip">{climb.grade}</span>}
+            {climb.angle != null && <span className="meta-chip">{climb.angle}&deg;</span>}
             {climb.feet_rules && <span className="meta-chip">{climb.feet_rules}</span>}
             <span className="meta-chip">{climb.send_count} {climb.send_count === 1 ? "sender" : "senders"}</span>
           </div>

@@ -45,16 +45,20 @@ export default function ClimbsList() {
   const [reverse, setReverse] = useState(false);               // applied
   const [draftSort, setDraftSort] = useState<SortKey>("date"); // staged in the menu
   const [draftReverse, setDraftReverse] = useState(false);
+  const [angleFilter, setAngleFilter] = useState<number | null>(null); // applied
+  const [draftAngle, setDraftAngle] = useState<number | null>(null);   // staged in the menu
   const [menuOpen, setMenuOpen] = useState(false);
 
   function openMenu() {
     setDraftSort(sort);        // start the draft from what's currently applied
     setDraftReverse(reverse);
+    setDraftAngle(angleFilter);
     setMenuOpen(true);
   }
   function applyMenu() {
     setSort(draftSort);        // commit the draft -> this is what re-sorts the list
     setReverse(draftReverse);
+    setAngleFilter(draftAngle);
     setMenuOpen(false);
   }
 
@@ -73,7 +77,9 @@ export default function ClimbsList() {
     if (!climbs) return [];
     const q = query.trim().toLowerCase();
     const list = climbs.filter(
-      (c) => c.name.toLowerCase().includes(q) || (c.setter_name ?? "").toLowerCase().includes(q)
+      (c) =>
+        (c.name.toLowerCase().includes(q) || (c.setter_name ?? "").toLowerCase().includes(q)) &&
+        (angleFilter === null || c.angle === angleFilter)
     );
     // Name sorts A→Z by default; everything else is "most/highest/newest" first.
     const descByDefault = sort !== "name";
@@ -82,7 +88,13 @@ export default function ClimbsList() {
       const asc = cmpAsc(a, b, sort);
       return useDesc ? -asc : asc;
     });
-  }, [climbs, query, sort, reverse]);
+  }, [climbs, query, sort, reverse, angleFilter]);
+
+  const angleOptions = useMemo(() => {
+    const set = new Set<number>();
+    (climbs ?? []).forEach((c) => { if (c.angle != null) set.add(c.angle); });
+    return [...set].sort((a, b) => a - b);
+  }, [climbs]);
 
   const activeLabel = SORTS.find((o) => o.key === sort)?.label ?? "Sort";
 
@@ -102,7 +114,7 @@ export default function ClimbsList() {
         />
         <div className="sort-wrap">
           <button className="sort-btn" onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}>
-            {activeLabel}{reverse ? " ↑" : " ↓"} ▾
+            {activeLabel}{reverse ? " ↑" : " ↓"}{angleFilter != null ? ` · ${angleFilter}°` : ""} ▾
           </button>
           {menuOpen && (
             <>
@@ -117,6 +129,22 @@ export default function ClimbsList() {
                     {opt.label}{draftSort === opt.key && <span className="sort-check">✓</span>}
                   </button>
                 ))}
+                {angleOptions.length > 0 && (
+                  <>
+                    <div className="sort-sep" />
+                    <label className="sort-filter">
+                      <span className="sort-filter-label">Angle</span>
+                      <select
+                        className="sort-filter-select"
+                        value={draftAngle ?? ""}
+                        onChange={(e) => setDraftAngle(e.target.value === "" ? null : Number(e.target.value))}
+                      >
+                        <option value="">All angles</option>
+                        {angleOptions.map((a) => <option key={a} value={a}>{a}&deg;</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
                 <div className="sort-sep" />
                 <button
                   className={`sort-opt${draftReverse ? " active" : ""}`}
@@ -159,7 +187,7 @@ export default function ClimbsList() {
                   {c.name}
                   {c.sent_by_me && <span className="sent-tick" title="You've sent this"> ✓</span>}
                 </span>
-                <span className="climb-grade-line">{c.grade || "Ungraded"}</span>
+                <span className="climb-grade-line">{c.grade || "Ungraded"}{c.angle != null && ` · ${c.angle}\u00b0`}</span>
                 <span className="climb-sub">
                   {c.send_count} {c.send_count === 1 ? "send" : "sends"}
                   {c.rating != null && ` · ★ ${c.rating}`}
