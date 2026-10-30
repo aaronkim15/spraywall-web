@@ -10,7 +10,7 @@ import type { HoldRole } from "../api/climbs";
 import { findHoldAtPoint } from "../utils/holds";
 import { ROLE_COLORS, ROLE_ONHOLD, ROLE_LABELS } from "../lib/roles";
 
-import { WALL_ID } from "../config";
+import { WALL_ID, WALL_ANGLES } from "../config";
 
 // In-progress climbs are mirrored here so they survive Safari unloading the page.
 // A draft is only restored if it was touched within the last 10 minutes.
@@ -38,8 +38,6 @@ const CYCLE: HoldRole[] = ["hand", "start", "foot", "finish"];
 // --- Dropdown options (placeholders — swap these arrays for your real sets) ---
 const GRADES = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15"];
 const FEET_RULES = ["Open feet", "Feet follow hands", "Marked feet only", "Tracking", "No feet"];
-// Wall angles in degrees. Placeholder 5-60 by 5 until the real angles are measured.
-const ANGLES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 
 export default function CreateClimb() {
   const navigate = useNavigate();
@@ -235,7 +233,7 @@ export default function CreateClimb() {
             <span className="field-label">Angle</span>
             <select value={angle} onChange={(e) => setAngle(e.target.value)}>
               <option value="">Select angle</option>
-              {ANGLES.map((a) => <option key={a} value={a}>{a}&deg;</option>)}
+              {WALL_ANGLES.map((a) => <option key={a} value={a}>{a}&deg;</option>)}
             </select>
           </label>
 

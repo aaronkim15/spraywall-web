@@ -4,7 +4,7 @@ import { listClimbs, thumbUrl } from "../api/climbs";
 import type { ClimbSummary } from "../api/climbs";
 import { prefetchWall } from "../api/walls";
 
-import { WALL_ID } from "../config";
+import { WALL_ID, WALL_ANGLES } from "../config";
 
 type SortKey = "name" | "date" | "grade" | "rating" | "sends";
 
@@ -45,20 +45,18 @@ export default function ClimbsList() {
   const [reverse, setReverse] = useState(false);               // applied
   const [draftSort, setDraftSort] = useState<SortKey>("date"); // staged in the menu
   const [draftReverse, setDraftReverse] = useState(false);
-  const [angleFilter, setAngleFilter] = useState<number | null>(null); // applied
-  const [draftAngle, setDraftAngle] = useState<number | null>(null);   // staged in the menu
+  const [angleFilter, setAngleFilter] = useState<number | null>(null); // its own dropdown
   const [menuOpen, setMenuOpen] = useState(false);
+  const [angleMenuOpen, setAngleMenuOpen] = useState(false);
 
   function openMenu() {
     setDraftSort(sort);        // start the draft from what's currently applied
     setDraftReverse(reverse);
-    setDraftAngle(angleFilter);
     setMenuOpen(true);
   }
   function applyMenu() {
     setSort(draftSort);        // commit the draft -> this is what re-sorts the list
     setReverse(draftReverse);
-    setAngleFilter(draftAngle);
     setMenuOpen(false);
   }
 
@@ -90,11 +88,10 @@ export default function ClimbsList() {
     });
   }, [climbs, query, sort, reverse, angleFilter]);
 
-  const angleOptions = useMemo(() => {
-    const set = new Set<number>();
-    (climbs ?? []).forEach((c) => { if (c.angle != null) set.add(c.angle); });
-    return [...set].sort((a, b) => a - b);
-  }, [climbs]);
+  function selectAngle(a: number | null) {
+    setAngleFilter(a);        // single choice -> apply immediately and close
+    setAngleMenuOpen(false);
+  }
 
   const activeLabel = SORTS.find((o) => o.key === sort)?.label ?? "Sort";
 
@@ -112,9 +109,10 @@ export default function ClimbsList() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="sort-wrap">
+        <div className="list-filter-row">
+          <div className="sort-wrap">
           <button className="sort-btn" onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}>
-            {activeLabel}{reverse ? " ↑" : " ↓"}{angleFilter != null ? ` · ${angleFilter}°` : ""} ▾
+            {activeLabel}{reverse ? " ↑" : " ↓"} ▾
           </button>
           {menuOpen && (
             <>
@@ -129,22 +127,6 @@ export default function ClimbsList() {
                     {opt.label}{draftSort === opt.key && <span className="sort-check">✓</span>}
                   </button>
                 ))}
-                {angleOptions.length > 0 && (
-                  <>
-                    <div className="sort-sep" />
-                    <label className="sort-filter">
-                      <span className="sort-filter-label">Angle</span>
-                      <select
-                        className="sort-filter-select"
-                        value={draftAngle ?? ""}
-                        onChange={(e) => setDraftAngle(e.target.value === "" ? null : Number(e.target.value))}
-                      >
-                        <option value="">All angles</option>
-                        {angleOptions.map((a) => <option key={a} value={a}>{a}&deg;</option>)}
-                      </select>
-                    </label>
-                  </>
-                )}
                 <div className="sort-sep" />
                 <button
                   className={`sort-opt${draftReverse ? " active" : ""}`}
@@ -157,6 +139,36 @@ export default function ClimbsList() {
               </div>
             </>
           )}
+          </div>
+
+          <div className="sort-wrap angle-wrap">
+            <button className="sort-btn" onClick={() => setAngleMenuOpen((o) => !o)}>
+              {angleFilter != null ? `${angleFilter}\u00b0` : "All angles"} ▾
+            </button>
+            {angleMenuOpen && (
+              <>
+                <div className="sort-backdrop" onClick={() => setAngleMenuOpen(false)} />
+                <div className="sort-menu angle-menu">
+                  <button
+                    className={`sort-opt${angleFilter === null ? " active" : ""}`}
+                    onClick={() => selectAngle(null)}
+                  >
+                    All angles{angleFilter === null && <span className="sort-check">✓</span>}
+                  </button>
+                  <div className="sort-sep" />
+                  {WALL_ANGLES.map((a) => (
+                    <button
+                      key={a}
+                      className={`sort-opt${angleFilter === a ? " active" : ""}`}
+                      onClick={() => selectAngle(a)}
+                    >
+                      {a}&deg;{angleFilter === a && <span className="sort-check">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
