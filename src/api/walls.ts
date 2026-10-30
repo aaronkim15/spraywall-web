@@ -76,6 +76,7 @@ export function refineOutlines(id: string, outlines: Point[][]) {
   });
 }
 
-export function wallImageUrl(id: string, version: string | number) {
-  return `${API_BASE_URL}/walls/${id}/image?v=${version}`;
+export function wallImageUrl(id: string, version: string | number, full = false) {
+  // Default: downscaled display image (fast). full=true: original full-res (zoom view).
+  return `${API_BASE_URL}/walls/${id}/image?v=${version}${full ? "&res=full" : ""}`;
 }

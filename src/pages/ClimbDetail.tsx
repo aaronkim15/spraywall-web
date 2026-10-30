@@ -280,7 +280,7 @@ export default function ClimbDetail() {
               <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%" }}>
                 <div className="wall-stage" style={{ aspectRatio: `${wall!.image_width} / ${wall!.image_height}` }}>
                   <img
-                    src={wallImageUrl(WALL_ID, wall?.image_version ?? "0")}
+                    src={wallImageUrl(WALL_ID, wall?.image_version ?? "0", true)}
                     alt="wall"
                     className="wall-img"
                     draggable={false}

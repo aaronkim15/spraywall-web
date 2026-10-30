@@ -17,6 +17,17 @@ export default function Home() {
     prefetchWall(WALL_ID).then(setWall).catch(() => {});
   }, []);
 
+  // Background-warm the FULL-RES wall image so the first zoom is instant.
+  // One shared file for the whole app, cached immutably, so this runs once per device.
+  useEffect(() => {
+    const version = wall?.image_version;
+    if (!version || version === "0") return; // no real image yet; skip
+
+    const img = new Image();
+    img.setAttribute("fetchpriority", "low"); // yield to the visible background
+    img.src = wallImageUrl(WALL_ID, version, true); // full-res; setting .src fills the cache
+  }, [wall?.image_version]);
+
   return (
     <div className="home-screen">
       <div
