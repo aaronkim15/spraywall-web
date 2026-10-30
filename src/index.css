@@ -411,6 +411,20 @@ button { -webkit-user-select: none; user-select: none; cursor: pointer; }
 .sort-check { color: #2563eb; }
 .sort-sep { height: 1px; background: #2a2a2f; margin: 5px 4px; }
 
+/* Angle filter row inside the sort menu */
+.sort-filter {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+}
+.sort-filter-label { font-size: 14px; font-weight: 600; color: #9aa0a6; }
+.sort-filter-select {
+  flex: 1; min-width: 0;
+  background: #1b1b1f; color: #f5f5f7;
+  border: 1px solid #333; border-radius: 8px;
+  padding: 8px 10px; font-size: 14px; font-family: inherit;
+  appearance: none; -webkit-appearance: none;
+}
+
 /* Sort menu apply button */
 .sort-apply {
   width: 100%; background: #2563eb; color: #fff; border: none;
