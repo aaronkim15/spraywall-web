@@ -23,6 +23,7 @@ export default function ClimbDetail() {
   const [logAttempts, setLogAttempts] = useState(1);
   const [logBusy, setLogBusy] = useState(false);
   const [ratingBusy, setRatingBusy] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0); // desktop hover preview; 0 = none
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
   const overlayRef = useRef<ReactZoomPanPinchRef | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -59,14 +60,18 @@ export default function ClimbDetail() {
   }
 
   async function onRate(n: number) {
-    if (!id || !user) return;
+    if (!id || !user || ratingBusy) return;
+    const clearing = climb?.my_rating === n; // tap your current star to clear
     setRatingBusy(true);
     setError(null);
+    // Optimistic: fill instantly so a tap feels immediate (no wait for the server).
+    setClimb((c) => (c ? { ...c, my_rating: clearing ? null : n } : c));
     try {
-      if (climb?.my_rating === n) await unrateClimb(id); // tap your current star to clear
+      if (clearing) await unrateClimb(id);
       else await rateClimb(id, n);
-      setClimb(await getClimb(id)); // refresh average + my_rating
+      setClimb(await getClimb(id)); // reconcile average + my_rating with the server
     } catch (e) {
+      setClimb(await getClimb(id).catch(() => climb)); // revert the optimistic change
       setError(e instanceof Error ? e.message : "Could not save rating.");
     } finally {
       setRatingBusy(false);
@@ -193,16 +198,23 @@ export default function ClimbDetail() {
           </div>
 
           <div className="rating-row">
-            <div className="stars">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  className={`star-btn${(climb.my_rating ?? 0) >= n ? " filled" : ""}`}
-                  onClick={() => onRate(n)}
-                  disabled={!user || ratingBusy}
-                  aria-label={`${n} star${n > 1 ? "s" : ""}`}
-                >★</button>
-              ))}
+            <div className="stars" onMouseLeave={() => setHoverRating(0)}>
+              {[1, 2, 3, 4, 5].map((n) => {
+                const shown = hoverRating || (climb.my_rating ?? 0);
+                const active = n <= shown;
+                // While hovering, active stars show the preview color; otherwise the saved color.
+                const cls = `star-btn${active ? (hoverRating ? " preview" : " filled") : ""}`;
+                return (
+                  <button
+                    key={n}
+                    className={cls}
+                    onClick={() => onRate(n)}
+                    onMouseEnter={() => user && setHoverRating(n)}
+                    disabled={!user || ratingBusy}
+                    aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                  >★</button>
+                );
+              })}
             </div>
             <span className="rating-avg">
               {climb.rating != null ? `${climb.rating} (${climb.rating_count})` : "No ratings yet"}
