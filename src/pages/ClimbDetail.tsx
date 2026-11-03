@@ -23,7 +23,8 @@ export default function ClimbDetail() {
   const [logAttempts, setLogAttempts] = useState(1);
   const [logBusy, setLogBusy] = useState(false);
   const [ratingBusy, setRatingBusy] = useState(false);
-  const [hoverRating, setHoverRating] = useState(0); // desktop hover preview; 0 = none
+  const [hoverRating, setHoverRating] = useState(0);        // desktop hover preview; 0 = none
+  const [pendingRating, setPendingRating] = useState<number | null>(null); // tapped but not yet submitted
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
   const overlayRef = useRef<ReactZoomPanPinchRef | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -59,20 +60,38 @@ export default function ClimbDetail() {
     }
   }
 
-  async function onRate(n: number) {
-    if (!id || !user || ratingBusy) return;
-    const clearing = climb?.my_rating === n; // tap your current star to clear
+  // Save the star the user tapped. Nothing hits the server until this runs.
+  async function submitRating() {
+    if (!id || !user || ratingBusy || pendingRating == null) return;
+    const chosen = pendingRating;
     setRatingBusy(true);
     setError(null);
-    // Optimistic: fill instantly so a tap feels immediate (no wait for the server).
-    setClimb((c) => (c ? { ...c, my_rating: clearing ? null : n } : c));
+    setClimb((c) => (c ? { ...c, my_rating: chosen } : c)); // optimistic
+    setPendingRating(null);
     try {
-      if (clearing) await unrateClimb(id);
-      else await rateClimb(id, n);
+      await rateClimb(id, chosen);
       setClimb(await getClimb(id)); // reconcile average + my_rating with the server
     } catch (e) {
-      setClimb(await getClimb(id).catch(() => climb)); // revert the optimistic change
+      setClimb(await getClimb(id).catch(() => climb)); // revert on failure
       setError(e instanceof Error ? e.message : "Could not save rating.");
+    } finally {
+      setRatingBusy(false);
+    }
+  }
+
+  // Remove the user's saved rating.
+  async function clearRating() {
+    if (!id || !user || ratingBusy || climb?.my_rating == null) return;
+    setRatingBusy(true);
+    setError(null);
+    setClimb((c) => (c ? { ...c, my_rating: null } : c)); // optimistic
+    setPendingRating(null);
+    try {
+      await unrateClimb(id);
+      setClimb(await getClimb(id));
+    } catch (e) {
+      setClimb(await getClimb(id).catch(() => climb));
+      setError(e instanceof Error ? e.message : "Could not clear rating.");
     } finally {
       setRatingBusy(false);
     }
@@ -200,15 +219,17 @@ export default function ClimbDetail() {
           <div className="rating-row">
             <div className="stars" onMouseLeave={() => setHoverRating(0)}>
               {[1, 2, 3, 4, 5].map((n) => {
-                const shown = hoverRating || (climb.my_rating ?? 0);
+                const saved = climb.my_rating ?? 0;
+                const shown = hoverRating || pendingRating || saved;
                 const active = n <= shown;
-                // While hovering, active stars show the preview color; otherwise the saved color.
-                const cls = `star-btn${active ? (hoverRating ? " preview" : " filled") : ""}`;
+                // Orange = an unsaved choice (hovering or tapped); gold = your saved rating.
+                const unsaved = hoverRating > 0 || pendingRating != null;
+                const cls = `star-btn${active ? (unsaved ? " preview" : " filled") : ""}`;
                 return (
                   <button
                     key={n}
                     className={cls}
-                    onClick={() => onRate(n)}
+                    onClick={() => setPendingRating(n)}
                     onMouseEnter={() => user && setHoverRating(n)}
                     disabled={!user || ratingBusy}
                     aria-label={`${n} star${n > 1 ? "s" : ""}`}
@@ -220,6 +241,26 @@ export default function ClimbDetail() {
               {climb.rating != null ? `${climb.rating} (${climb.rating_count})` : "No ratings yet"}
             </span>
           </div>
+
+          {user && (
+            <div className="rating-actions">
+              {pendingRating != null && pendingRating !== (climb.my_rating ?? 0) && (
+                <button className="rating-submit" onClick={submitRating} disabled={ratingBusy}>
+                  {ratingBusy ? "Saving..." : `Submit ${pendingRating}\u2605`}
+                </button>
+              )}
+              {pendingRating != null && (
+                <button className="rating-cancel" onClick={() => setPendingRating(null)} disabled={ratingBusy}>
+                  Cancel
+                </button>
+              )}
+              {pendingRating == null && climb.my_rating != null && (
+                <button className="rating-cancel" onClick={clearRating} disabled={ratingBusy}>
+                  Clear rating
+                </button>
+              )}
+            </div>
+          )}
 
           {user && (
             <div className="log-send">

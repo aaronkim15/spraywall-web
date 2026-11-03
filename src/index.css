@@ -500,3 +500,15 @@ button { -webkit-user-select: none; user-select: none; cursor: pointer; }
 .star-btn.preview { color: #ff9f1c; transform: scale(1.12); } /* hovering: about to pick (orange) */
 .star-btn:disabled { cursor: default; }
 .rating-avg { font-size: 13px; color: #9aa0a6; }
+.rating-actions { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+.rating-submit {
+  background: #2563eb; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.rating-submit:active { background: #1d4ed8; }
+.rating-submit:disabled { opacity: 0.6; cursor: default; }
+.rating-cancel {
+  background: none; border: none; color: #9aa0a6; cursor: pointer;
+  font-size: 13px; font-weight: 600; padding: 8px 4px; text-decoration: underline;
+}
+.rating-cancel:disabled { opacity: 0.6; cursor: default; }
