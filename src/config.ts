@@ -1,6 +1,6 @@
 export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "https://spraywall-backend.onrender.com";
+  "https://raspberrypi.tailf4eac6.ts.net"; // Pi backend (Tailscale Funnel); override with VITE_API_BASE_URL
 
 // The single wall the app uses for now. Under wall versioning this becomes
 // "the current active layout id." Centralized so there's one place to change.
